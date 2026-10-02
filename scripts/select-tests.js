@@ -182,10 +182,13 @@ function main() {
 }
 // Only run when invoked directly (not when imported in tests).
 //
-// NB: comparing normalized `file://` URLs (via pathToFileURL) is the correct
-// cross-platform check. Stripping the scheme by hand breaks on POSIX because
-// it also removes the leading path slash, making the comparison always fail
-// and main() never run (silent exit 0 — the CI "Select tests" step bug).
+// NB: `import.meta.url` is a `file://` URL (e.g.
+// `file:///home/ci/repo/scripts/select-tests.ts`). The previous guard stripped
+// the scheme by hand, which also removed the leading path slash on POSIX;
+// path.resolve() then produced a bogus CWD-relative path, the comparison
+// always failed, and main() never ran — the script silently exited 0 without
+// writing its output, which broke the CI "Select tests" step. Comparing
+// normalized `file://` URLs is the correct, cross-platform check.
 /* istanbul ignore next */
 const isMain = !!process.argv[1] &&
     pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url;
